@@ -6,7 +6,9 @@
 #include <iostream>
 
 #include "shaderLoader.h"
+#include <soil.h>
 
+#define VERTEX_STRIDE 8
 #define OUT
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -53,26 +55,29 @@ int main()
 
 	Shader ourShader("vertex.vshader", "fragment.fshader");
 
-	//5 vertex figure:
+	//Texture mapping works but is mirrored:
 	GLfloat vertices[] =
 	{
-		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-		-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-		0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
-		0.5f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f
+		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+		-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+		0.5f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f
 	};
-	
-	const GLuint verticesCount = (sizeof(vertices) / sizeof(GLfloat)) / 3;
 
-	GLuint indices[] =
+	/*GLfloat vertices[] =
 	{
-		0, 1, 2, 3
-	};
+		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+		0.5f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f, 0.0f
+	};*/
+	
+	const GLuint verticesCount = (sizeof(vertices) / sizeof(GLfloat)) / VERTEX_STRIDE;
 
-	////Setting the indices order:
-	//GLuint indices[verticesCount];
-	//for (int i = 0; i < verticesCount; ++i)
-	//	indices[i] = i;
+	//Setting the indices order:
+	GLuint indices[verticesCount];
+	for (int i = 0; i < verticesCount; ++i)
+		indices[i] = i;
 
 	GLuint indicesSize = sizeof(indices) / sizeof(GLuint);
 
@@ -91,44 +96,51 @@ int main()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_STRIDE * sizeof(GLfloat), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VERTEX_STRIDE * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, VERTEX_STRIDE * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
 
-	glBindVertexArray(0);
+	/*glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);*/
 
-	////Texture binding:
-	//GLuint texture;
-	//glGenTextures(1, &texture);
-	//glBindTexture(GL_TEXTURE_2D, texture);
+	//Texture binding:
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	//int width, height, nrChannels;
-	//unsigned char *data = stbi_load("picture.jpg", &width, &height, &nrChannels, 0);
+	int width, height, nrChannels;
+	unsigned char *data = stbi_load("picture.jpg", &width, &height, &nrChannels, 0);
+	//unsigned char* data = SOIL_load_image("picture.jpg", &width, &height, 0, SOIL_LOAD_RGB);
 
-	//if (data)
-	//{
-	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	//	glGenerateMipmap(GL_TEXTURE_2D);
-	//}
-	//else
-	//{
-	//	std::cout << "Failed to load texture" << std::endl;
-	//}
-	//stbi_image_free(data);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
 
 	do
 	{
 		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		// bind textures on corresponding texture units
+        //glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
 
 		ourShader.use();
 
@@ -148,6 +160,8 @@ int main()
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
+
+	glfwTerminate();
 
 	return 0;
 
