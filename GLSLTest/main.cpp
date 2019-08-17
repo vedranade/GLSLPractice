@@ -1,12 +1,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/projection.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 
 #include "shaderLoader.h"
-#include <soil.h>
 
 #define VERTEX_STRIDE 8
 #define OUT
@@ -18,7 +18,6 @@ const unsigned int screenHeight = 768;
 
 int main()
 {
-
 	glewExperimental = true;
 
 	if (!glfwInit())
@@ -63,14 +62,6 @@ int main()
 		0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
 		0.5f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f
 	};
-
-	/*GLfloat vertices[] =
-	{
-		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-		-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-		0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-		0.5f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f, 0.0f
-	};*/
 	
 	const GLuint verticesCount = (sizeof(vertices) / sizeof(GLfloat)) / VERTEX_STRIDE;
 
@@ -108,6 +99,12 @@ int main()
 	/*glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);*/
 
+	// create transformations
+	glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+	//transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+	/*transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));*/
+	transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
 	//Texture binding:
 	GLuint texture;
 	glGenTextures(1, &texture);
@@ -119,8 +116,7 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	int width, height, nrChannels;
-	unsigned char *data = stbi_load("picture.jpg", &width, &height, &nrChannels, 0);
-	//unsigned char* data = SOIL_load_image("picture.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+	unsigned char *data = stbi_load("sample-png-3.png", &width, &height, &nrChannels, 0);
 
 	if (data)
 	{
@@ -131,7 +127,7 @@ int main()
 	{
 		std::cout << "Failed to load texture" << std::endl;
 	}
-	stbi_image_free(data);
+	//stbi_image_free(data);
 
 	do
 	{
@@ -143,6 +139,9 @@ int main()
         glBindTexture(GL_TEXTURE_2D, texture);
 
 		ourShader.use();
+
+		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 
 		/*glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);*/
