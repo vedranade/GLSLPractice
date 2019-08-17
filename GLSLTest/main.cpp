@@ -100,10 +100,17 @@ int main()
 	glBindVertexArray(0);*/
 
 	// create transformations
-	glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-	//transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-	/*transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));*/
-	transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+	glm::mat4 view = glm::mat4(1.0f);
+	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+	glm::mat4 projection;
+	projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+
+	glm::mat4 transform;
+	transform = projection * view * model;
 
 	//Texture binding:
 	GLuint texture;
@@ -127,7 +134,7 @@ int main()
 	{
 		std::cout << "Failed to load texture" << std::endl;
 	}
-	//stbi_image_free(data);
+	stbi_image_free(data);
 
 	do
 	{
@@ -135,7 +142,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// bind textures on corresponding texture units
-        //glActiveTexture(GL_TEXTURE0);
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
 
 		ourShader.use();
