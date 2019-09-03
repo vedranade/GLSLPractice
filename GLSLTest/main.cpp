@@ -7,65 +7,78 @@
 #include <iostream>
 
 #include "shaderLoader.h"
+#include "functionality.h"
 
-#define VERTEX_STRIDE 8
-#define OUT
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-const unsigned int screenWidth = 1024;
-const unsigned int screenHeight = 768;
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 int main()
 {
-	glewExperimental = true;
-
-	if (!glfwInit())
-	{
-		fprintf(stderr, "Failed to initialize GLFW\n");
-		return -1;
-	}
-
-	{
-		glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
-	}
-
 	GLFWwindow* window;
-	window = glfwCreateWindow(screenWidth, screenHeight, "Tutorial 01", NULL, NULL);
-	if (window == NULL)
-	{
-		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
-		glfwTerminate();
-		return -1;
-	}
-
-	glfwMakeContextCurrent(window); // Initialize GLEW
-	glewExperimental = true; // Needed in core profile
-	if (glewInit() != GLEW_OK)
-	{
-		fprintf(stderr, "Failed to initialize GLEW\n");
-		return -1;
-	}
-
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	window = setupGLFW();
 
 	Shader ourShader("vertex.vshader", "fragment.fshader");
 
-	//Texture mapping works but is mirrored:
-	GLfloat vertices[] =
+	/*GLfloat vertices[] =
 	{
 		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
 		-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
 		0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
 		0.5f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f
+	};*/
+
+	GLfloat vertices[] = {
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
+
+	glEnable(GL_DEPTH_TEST);
 	
 	const GLuint verticesCount = (sizeof(vertices) / sizeof(GLfloat)) / VERTEX_STRIDE;
 
-	//Setting the indices order:
+	///Setting the indices order:
 	GLuint indices[verticesCount];
 	for (int i = 0; i < verticesCount; ++i)
 		indices[i] = i;
@@ -74,6 +87,8 @@ int main()
 
 	//Vertex buffer binding:
 	GLuint VAO, VBO, EBO;
+
+	//generateBuffers(VAO, VBO, EBO, vertices, indices);
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -84,45 +99,36 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+	/*glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);*/
+	 
+	///Vertex position:
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_STRIDE * sizeof(GLfloat), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VERTEX_STRIDE * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	///Vertex color:
+	/*glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VERTEX_STRIDE * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);*/
+
+	/*///Vertex texture:
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, VERTEX_STRIDE * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);*/
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, VERTEX_STRIDE * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, VERTEX_STRIDE * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
+	glm::mat4 transform = setTranformations();
 
-	/*glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);*/
+	//Texture binding:
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
 
-	// create transformations
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glm::mat4 view = glm::mat4(1.0f);
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-
-	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-
-	glm::mat4 transform;
-	transform = projection * view * model;
-
-	////Texture binding:
-	//GLuint texture;
-	//glGenTextures(1, &texture);
-	//glBindTexture(GL_TEXTURE_2D, texture);
-
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	/*int width, height, nrChannels;
+	int width, height, nrChannels;
 	unsigned char *data = stbi_load("sample-png-3.png", &width, &height, &nrChannels, 0);
 
 	if (data)
@@ -134,33 +140,42 @@ int main()
 	{
 		std::cout << "Failed to load texture" << std::endl;
 	}
-	stbi_image_free(data);*/
+	stbi_image_free(data);
 
 	do
 	{
-		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
 
-		//// bind textures on corresponding texture units
-  //      glActiveTexture(GL_TEXTURE0);
-  //      glBindTexture(GL_TEXTURE_2D, texture);
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		handleInput(window);
+
+		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		// bind textures on corresponding texture units
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
 
 		ourShader.use();
+
+		//transform = glm::rotate(transform, (float)glfwGetTime() * glm::radians(0.5f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 
-		/*glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);*/
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLE_STRIP, indicesSize, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		/*glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLE_STRIP, indicesSize, GL_UNSIGNED_INT, 0);*/
 		
 		// Swap buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 
 	} // Check if the ESC key was pressed or the window was closed
-	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
+	while (!glfwWindowShouldClose(window));
 
 	//Cleanup:
 	glDeleteVertexArrays(1, &VAO);
