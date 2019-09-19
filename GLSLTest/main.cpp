@@ -15,20 +15,32 @@
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+glm::vec3 camPosition = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 camLookAt = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+void handleInput(GLFWwindow * window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+
+	float cameraSpeed = 2.5f * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camPosition += cameraSpeed * camLookAt;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camPosition -= cameraSpeed * camLookAt;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camPosition -= glm::normalize(glm::cross(camLookAt, camUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camPosition += glm::normalize(glm::cross(camLookAt, camUp)) * cameraSpeed;
+}
+
 int main()
 {
 	GLFWwindow* window;
 	window = setupGLFW();
 
 	Shader ourShader("vertex.vshader", "fragment.fshader");
-
-	/*GLfloat vertices[] =
-	{
-		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-		-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-		0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-		0.5f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f
-	};*/
 
 	GLfloat vertices[] = {
 	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -116,7 +128,14 @@ int main()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, VERTEX_STRIDE * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 
-	glm::mat4 transform = setTranformations();
+	//glm::mat4 transform = setTranformations();
+	glm::mat4 model = glm::mat4(1.0f);
+
+	glm::mat4 view = glm::mat4(1.0f);
+	view = glm::lookAt(camPosition, camLookAt, camUp);
+
+	glm::mat4 projection;
+	projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 
 	//Texture binding:
 	GLuint texture;
@@ -144,12 +163,9 @@ int main()
 
 	do
 	{
-
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-
-		handleInput(window);
 
 		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -160,15 +176,18 @@ int main()
 
 		ourShader.use();
 
-		//transform = glm::rotate(transform, (float)glfwGetTime() * glm::radians(0.5f), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::lookAt(camPosition, camPosition + camLookAt, camUp);
 
-		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+		glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		/*glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLE_STRIP, indicesSize, GL_UNSIGNED_INT, 0);*/
+
+		handleInput(window);
 		
 		// Swap buffers
 		glfwSwapBuffers(window);

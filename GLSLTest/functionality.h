@@ -16,6 +16,6 @@ extern float deltaTime;
 extern float lastFrame;
 
 void generateBuffers(GLuint &VAO, GLuint &VBO, GLuint &EBO, GLfloat vertices[], GLuint indices[]);
-glm::mat4 setTranformations();
+//glm::mat4 setTranformations();
 GLFWwindow* setupGLFW();
-void handleInput(GLFWwindow *window);
+//void handleInput(GLFWwindow *window);

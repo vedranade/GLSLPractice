@@ -9,9 +9,9 @@
 
 #include "functionality.h"
 
-glm::vec3 camPosition = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 camLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
-glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+//glm::vec3 camPosition = glm::vec3(0.0f, 0.0f, 3.0f);
+//glm::vec3 camLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
+//glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 void generateBuffers(GLuint &VAO, GLuint &VBO, GLuint &EBO, GLfloat vertices[], GLuint indices[])
 {
@@ -37,27 +37,27 @@ void generateBuffers(GLuint &VAO, GLuint &VBO, GLuint &EBO, GLfloat vertices[], 
 	glEnableVertexAttribArray(2);
 }
 
-glm::mat4 setTranformations()
-{
-	/*glm::vec3 camPosition(0.0f, 0.0f, 3.0f);
-	glm::vec3 camLookAt(0.0f, 0.0f, 0.0f);
-	glm::vec3 camUp(0.0f, 1.0f, 0.0f);*/
-
-	glm::mat4 model = glm::mat4(1.0f);
-	//model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-	glm::mat4 view = glm::mat4(1.0f);
-	//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-	view = glm::lookAt(camPosition, camLookAt, camUp);
-
-	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-
-	glm::mat4 transform;
-	transform = projection * view * model;
-
-	return transform;
-}
+//glm::mat4 setTranformations()
+//{
+//	/*glm::vec3 camPosition(0.0f, 0.0f, 3.0f);
+//	glm::vec3 camLookAt(0.0f, 0.0f, 0.0f);
+//	glm::vec3 camUp(0.0f, 1.0f, 0.0f);*/
+//
+//	glm::mat4 model = glm::mat4(1.0f);
+//	//model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+//
+//	glm::mat4 view = glm::mat4(1.0f);
+//	//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+//	view = glm::lookAt(camPosition, camLookAt, camUp);
+//
+//	glm::mat4 projection;
+//	projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+//
+//	glm::mat4 transform;
+//	transform = projection * view * model;
+//
+//	return transform;
+//}
 
 GLFWwindow* setupGLFW()
 {
@@ -95,18 +95,4 @@ GLFWwindow* setupGLFW()
 	return window;
 }
 
-void handleInput(GLFWwindow * window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
 
-	float cameraSpeed = 2.5 * deltaTime;
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camPosition += cameraSpeed * camLookAt;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camPosition -= cameraSpeed * camLookAt;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camPosition -= glm::normalize(glm::cross(camLookAt, camUp)) * cameraSpeed;
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camPosition += glm::normalize(glm::cross(camLookAt, camUp)) * cameraSpeed;
-}
