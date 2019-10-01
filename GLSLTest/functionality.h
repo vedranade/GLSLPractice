@@ -12,10 +12,10 @@
 const unsigned int screenWidth = 1024;
 const unsigned int screenHeight = 768;
 
-extern float deltaTime;
-extern float lastFrame;
+extern bool firstMouse;
 
 void generateBuffers(GLuint &VAO, GLuint &VBO, GLuint &EBO, GLfloat vertices[], GLuint indices[]);
+void mouseMovementCallback(GLFWwindow* window, double xpos, double ypos);
 //glm::mat4 setTranformations();
 GLFWwindow* setupGLFW();
 //void handleInput(GLFWwindow *window);

@@ -8,31 +8,66 @@
 
 #include "shaderLoader.h"
 #include "functionality.h"
+#include "Camera.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
+GLfloat deltaTime = 0.0f;
+GLfloat lastFrame = 0.0f;
 
 glm::vec3 camPosition = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 camLookAt = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+bool firstMouse = true;
+GLfloat lastX = screenWidth / 2.0f;
+GLfloat lastY = screenHeight / 2.0f;
+
+void mouseMovementCallback(GLFWwindow * window, double xpos, double ypos)
+{
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+	}
+
+	GLfloat xoffset = xpos - lastX;
+	GLfloat yoffset = lastY - ypos;
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}
 
 void handleInput(GLFWwindow * window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	float cameraSpeed = 2.5f * deltaTime;
+	GLfloat cameraSpeed = 2.5f * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camPosition += cameraSpeed * camLookAt;
+		camPosition.z -= cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camPosition -= cameraSpeed * camLookAt;
+		camPosition.z += cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camPosition -= glm::normalize(glm::cross(camLookAt, camUp)) * cameraSpeed;
+		camPosition.x -= cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camPosition += glm::normalize(glm::cross(camLookAt, camUp)) * cameraSpeed;
+		camPosition.x += cameraSpeed;
+
+	/*if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camera.ProcessKeyboard(RIGHT, deltaTime);*/
 }
 
 int main()
@@ -135,7 +170,7 @@ int main()
 	view = glm::lookAt(camPosition, camLookAt, camUp);
 
 	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+	projection = glm::perspective(glm::radians(45.0f), (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 100.0f);
 
 	//Texture binding:
 	GLuint texture;
@@ -163,7 +198,8 @@ int main()
 
 	do
 	{
-		float currentFrame = glfwGetTime();
+		GLfloat currentFrame = glfwGetTime();
+		//std::cout << "Current frame: " << currentFrame << "\n";
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
@@ -178,6 +214,7 @@ int main()
 
 		view = glm::lookAt(camPosition, camPosition + camLookAt, camUp);
 
+		///MVP matrix multiplications take place in fshader:
 		glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(glGetUniformLocation(ourShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));

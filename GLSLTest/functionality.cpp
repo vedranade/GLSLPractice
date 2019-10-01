@@ -9,10 +9,6 @@
 
 #include "functionality.h"
 
-//glm::vec3 camPosition = glm::vec3(0.0f, 0.0f, 3.0f);
-//glm::vec3 camLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
-//glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
 void generateBuffers(GLuint &VAO, GLuint &VBO, GLuint &EBO, GLfloat vertices[], GLuint indices[])
 {
 	glGenVertexArrays(1, &VAO);
@@ -51,7 +47,7 @@ void generateBuffers(GLuint &VAO, GLuint &VBO, GLuint &EBO, GLfloat vertices[], 
 //	view = glm::lookAt(camPosition, camLookAt, camUp);
 //
 //	glm::mat4 projection;
-//	projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+//	projection = glm::perspective(glm::radians(45.0f), (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 100.0f);
 //
 //	glm::mat4 transform;
 //	transform = projection * view * model;
@@ -90,7 +86,8 @@ GLFWwindow* setupGLFW()
 		fprintf(stderr, "Failed to initialize GLEW\n");
 	}
 
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	glfwSetCursorPosCallback(window, mouseMovementCallback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	return window;
 }
